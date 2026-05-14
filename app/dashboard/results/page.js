@@ -11,7 +11,8 @@ function StatusBadge({ status }) {
 }
 
 import { DataViewer } from '@/components/DataViewer';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 
 function ResultsPageContent() {
   const params = useSearchParams();
@@ -114,38 +115,43 @@ function ResultsPageContent() {
     return newRound;
   });
 
-  const handleExportExcel = () => {
-    if (!filteredPreviewRows.length) return alert('No line items to export!');
-    
-    // Determine exact UI sequence using localStorage
-    const activeCols = availableColumns.filter(c => selectedExportCols.has(c));
-    let savedGlobal = [];
-    try {
-      const savedStr = localStorage.getItem('global-column-order');
-      if (savedStr) savedGlobal = JSON.parse(savedStr);
-    } catch(e) {}
-    
-    activeCols.sort((a,b) => {
-      const idxA = savedGlobal.indexOf(a);
-      const idxB = savedGlobal.indexOf(b);
-      if (idxA === -1 && idxB === -1) return 0;
-      if (idxA === -1) return 1;
-      if (idxB === -1) return -1;
-      return idxA - idxB;
-    });
-    
-    // Map strictly via headers
-    const strictRows = filteredPreviewRows.map(r => {
-       const mapped = {};
-       activeCols.forEach(h => mapped[h] = r[h]);
-       return mapped;
-    });
+ const handleExportExcel = async () => {
+  if (!filteredPreviewRows.length) return alert('No line items to export!');
 
-    const ws = XLSX.utils.json_to_sheet(strictRows, { header: activeCols });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "LineItems");
-    XLSX.writeFile(wb, `Export_${Date.now()}.xlsx`);
-  };
+  const activeCols = availableColumns.filter(c => selectedExportCols.has(c));
+  let savedGlobal = [];
+  try {
+    const savedStr = localStorage.getItem('global-column-order');
+    if (savedStr) savedGlobal = JSON.parse(savedStr);
+  } catch(e) {}
+
+  activeCols.sort((a, b) => {
+    const idxA = savedGlobal.indexOf(a);
+    const idxB = savedGlobal.indexOf(b);
+    if (idxA === -1 && idxB === -1) return 0;
+    if (idxA === -1) return 1;
+    if (idxB === -1) return -1;
+    return idxA - idxB;
+  });
+
+  // Create workbook and worksheet
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('LineItems');
+
+  // Set columns
+  worksheet.columns = activeCols.map(col => ({ header: col, key: col }));
+
+  // Add rows
+  filteredPreviewRows.forEach(row => {
+    const mapped = {};
+    activeCols.forEach(h => mapped[h] = row[h]);
+    worksheet.addRow(mapped);
+  });
+
+  // Export
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(new Blob([buffer]), `Export_${Date.now()}.xlsx`);
+};
 
   const renderExportModal = () => {
     if (!showExportModal) return null;

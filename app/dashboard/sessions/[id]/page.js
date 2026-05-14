@@ -6,9 +6,11 @@ import { connectWebSocket, disconnectWebSocket } from '@/lib/websocket';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { DataViewer } from '@/components/DataViewer';
-import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
 import styles from '../../results/results.module.css';
 import uploadStyles from '../../upload/upload.module.css';
+import { use } from 'react';
 
 function StatusBadge({ status }) {
   const map = {
@@ -19,7 +21,7 @@ function StatusBadge({ status }) {
 }
 
 export default function SessionWorkspacePage({ params }) {
-  const sessionId = params.id;
+  const { id: sessionId } = use(params);
   const [sessionInfo, setSessionInfo] = useState(null);
 
   useEffect(() => {
@@ -193,37 +195,39 @@ export default function SessionWorkspacePage({ params }) {
     return newRound;
   });
 
-  const handleExportExcel = () => {
-    if (!filteredPreviewRows.length) return alert('No line items to export!');
-    
-    // Determine exact UI sequence using localStorage
-    const activeCols = availableColumns.filter(c => selectedExportCols.has(c));
-    let savedGlobal = [];
-    try {
-      const savedStr = localStorage.getItem('global-column-order');
-      if (savedStr) savedGlobal = JSON.parse(savedStr);
-    } catch(e) {}
-    
-    activeCols.sort((a,b) => {
-      const idxA = savedGlobal.indexOf(a);
-      const idxB = savedGlobal.indexOf(b);
-      if (idxA === -1 && idxB === -1) return 0;
-      if (idxA === -1) return 1;
-      if (idxB === -1) return -1;
-      return idxA - idxB;
-    });
-    
-    const strictRows = filteredPreviewRows.map(r => {
-       const mapped = {};
-       activeCols.forEach(h => mapped[h] = r[h]);
-       return mapped;
-    });
+  const handleExportExcel = async () => {
+  if (!filteredPreviewRows.length) return alert('No line items to export!');
 
-    const ws = XLSX.utils.json_to_sheet(strictRows, { header: activeCols });
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "LineItems");
-    XLSX.writeFile(wb, `Export_${Date.now()}.xlsx`);
-  };
+  const activeCols = availableColumns.filter(c => selectedExportCols.has(c));
+  let savedGlobal = [];
+  try {
+    const savedStr = localStorage.getItem('global-column-order');
+    if (savedStr) savedGlobal = JSON.parse(savedStr);
+  } catch(e) {}
+
+  activeCols.sort((a, b) => {
+    const idxA = savedGlobal.indexOf(a);
+    const idxB = savedGlobal.indexOf(b);
+    if (idxA === -1 && idxB === -1) return 0;
+    if (idxA === -1) return 1;
+    if (idxB === -1) return -1;
+    return idxA - idxB;
+  });
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('LineItems');
+
+  worksheet.columns = activeCols.map(col => ({ header: col, key: col }));
+
+  filteredPreviewRows.forEach(row => {
+    const mapped = {};
+    activeCols.forEach(h => mapped[h] = row[h]);
+    worksheet.addRow(mapped);
+  });
+
+  const buffer = await workbook.xlsx.writeBuffer();
+  saveAs(new Blob([buffer]), `Export_${Date.now()}.xlsx`);
+};
 
   const renderExportModal = () => {
     if (!showExportModal) return null;

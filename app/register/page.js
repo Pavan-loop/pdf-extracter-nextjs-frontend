@@ -6,7 +6,7 @@ import styles from './register.module.css';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: '', username: '', email: '', password: '', phoneNumber: '' });
+  const [form, setForm] = useState({ name: '', username: '', email: '', password: '', confirmPassword: '', phoneNumber: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -14,11 +14,16 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     setError('');
     setLoading(true);
     try {
-      await authApi.register({ ...form, phoneNumber: form.phoneNumber ? Number(form.phoneNumber) : null }, 'USER');
-      router.push('/login?registered=1');
+      const { confirmPassword, ...payload } = form;
+      await authApi.register({ ...payload, phoneNumber: payload.phoneNumber ? Number(payload.phoneNumber) : null }, 'USER');
+      router.push(`/verify-otp?email=${encodeURIComponent(form.email)}`);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     } finally {
@@ -63,17 +68,35 @@ export default function RegisterPage() {
             <label className={styles.label}>EMAIL</label>
             <input type="email" className={styles.input} placeholder="you@company.com" value={form.email} onChange={set('email')} required />
           </div>
-          <div className={styles.field}>
-            <label className={styles.label}>PASSWORD</label>
-            <input type="password" className={styles.input} placeholder="Min. 8 characters" value={form.password} onChange={set('password')} required minLength={8} />
+          <div className={styles.row}>
+            <div className={styles.field}>
+              <label className={styles.label}>PASSWORD</label>
+              <input type="password" className={styles.input} placeholder="Min. 8 characters" value={form.password} onChange={set('password')} required minLength={8} />
+            </div>
+            <div className={styles.field}>
+              <label className={styles.label}>CONFIRM PASSWORD</label>
+              <input
+                type="password"
+                className={`${styles.input} ${form.confirmPassword && form.confirmPassword !== form.password ? styles.inputError : ''}`}
+                placeholder="Re-enter password"
+                value={form.confirmPassword}
+                onChange={set('confirmPassword')}
+                required
+              />
+            </div>
           </div>
           <div className={styles.field}>
             <label className={styles.label}>PHONE (optional)</label>
             <input type="tel" className={styles.input} placeholder="+91 98765 43210" value={form.phoneNumber} onChange={set('phoneNumber')} />
           </div>
 
-          <button type="submit" className={styles.btnPrimary} disabled={loading}>
-            {loading ? <span className={styles.spinner} /> : 'CREATE ACCOUNT →'}
+          <button type="submit" className={`${styles.btnPrimary} ${loading ? styles.btnLoading : ''}`} disabled={loading}>
+            {loading ? (
+              <>
+                <span className={styles.spinner} />
+                CREATING ACCOUNT...
+              </>
+            ) : 'CREATE ACCOUNT →'}
           </button>
         </form>
       </div>

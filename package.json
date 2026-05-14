@@ -8,21 +8,25 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "overrides": {
+    "postcss": "^8.5.10"
+  },
   "dependencies": {
     "@stomp/stompjs": "^7.0.0",
     "axios": "^1.7.2",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
     "js-cookie": "^3.0.5",
-    "next": "14.2.5",
+    "next": "^16.2.6",
     "react": "^18",
     "react-dom": "^18",
     "react-dropzone": "^14.2.3",
-    "sockjs-client": "^1.6.1",
-    "xlsx": "^0.18.5"
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
-    "eslint": "^8",
-    "eslint-config-next": "14.2.5"
+    "eslint": "^10.3.0",
+    "eslint-config-next": "^16.2.6"
   }
 }

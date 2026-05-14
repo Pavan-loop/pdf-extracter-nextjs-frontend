@@ -1,26 +1,39 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import styles from './login.module.css';
 
-export default function LoginPage() {
+const UNVERIFIED_MSG = 'Account is not verified';
+
+function LoginForm() {
   const { login } = useAuth();
   const router = useRouter();
+  const params = useSearchParams();
+  const justVerified = params.get('verified') === '1';
+  const justReset = params.get('reset') === '1';
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setUnverifiedEmail('');
     setLoading(true);
     try {
       await login(email, password);
       router.push('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+      const msg = err.response?.data?.message || 'Invalid credentials';
+      if (msg.includes(UNVERIFIED_MSG)) {
+        setUnverifiedEmail(email);
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -59,10 +72,35 @@ export default function LoginPage() {
             <p className={styles.formSub}>Access your document intelligence hub</p>
           </div>
 
+          {justVerified && (
+            <div className={styles.successBanner}>
+              <span>✓</span> Email verified. You can now sign in.
+            </div>
+          )}
+
+          {justReset && (
+            <div className={styles.successBanner}>
+              <span>✓</span> Password reset successfully. Sign in with your new password.
+            </div>
+          )}
+
           {error && (
             <div className={styles.errorBanner}>
               <span className={styles.errorIcon}>⚠</span>
               {error}
+            </div>
+          )}
+
+          {unverifiedEmail && (
+            <div className={styles.warnBanner}>
+              <span>⚠</span>
+              Account not verified.{' '}
+              <a
+                href={`/verify-otp?email=${encodeURIComponent(unverifiedEmail)}`}
+                className={styles.warnLink}
+              >
+                Enter your OTP →
+              </a>
             </div>
           )}
 
@@ -79,7 +117,10 @@ export default function LoginPage() {
               />
             </div>
             <div className={styles.field}>
-              <label className={styles.label}>PASSWORD</label>
+              <div className={styles.passwordRow}>
+                <label className={styles.label}>PASSWORD</label>
+                <a href="/forgot-password" className={styles.forgotLink}>Forgot password?</a>
+              </div>
               <input
                 type="password"
                 value={password}
@@ -116,5 +157,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
