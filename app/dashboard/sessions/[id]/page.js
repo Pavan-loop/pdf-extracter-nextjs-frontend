@@ -44,6 +44,9 @@ export default function SessionWorkspacePage({ params }) {
   // -- Results State --
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null);
+  // Ref so the WS callback always reads the latest selected without re-subscribing
+  const selectedRef = useRef(null);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectedExportCols, setSelectedExportCols] = useState(new Set());
   const [showExportModal, setShowExportModal] = useState(false);
@@ -70,33 +73,32 @@ export default function SessionWorkspacePage({ params }) {
     } catch {}
   }, []);
 
-  // Connect WebSocket on mount
+  // Fetch results once on mount
   useEffect(() => {
     fetchResults();
+  }, [fetchResults]);
 
-    clientRef.current = connectWebSocket((data) => {
-      setResults((prev) => {
-        const idx = prev.findIndex(r => r.jobId === data.jobId);
-        if (idx !== -1) {
-          const updated = [...prev];
-          updated[idx] = { ...updated[idx], ...data };
-          if (selected?.jobId === data.jobId) setSelected(updated[idx]);
-          return updated;
-        }
-        // If not found in prev, append it (fetchResults will fix the missing name later)
-        return [{ ...data, createdAt: new Date().toISOString() }, ...prev];
-      });
-    });
+  // WebSocket — mount/unmount only, never reconnects on state changes
+  useEffect(() => {
+    clientRef.current = connectWebSocket(
+      (data) => {
+        setResults((prev) => {
+          const idx = prev.findIndex(r => r.jobId === data.jobId);
+          if (idx !== -1) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], ...data };
+            // Use ref so this never causes a reconnect
+            if (selectedRef.current?.jobId === data.jobId) setSelected(updated[idx]);
+            return updated;
+          }
+          return [{ ...data, createdAt: new Date().toISOString() }, ...prev];
+        });
+      },
+      (connected) => setWsConnected(connected),
+    );
 
-    const checkInterval = setInterval(() => {
-      setWsConnected(clientRef.current?.active || false);
-    }, 1000);
-
-    return () => {
-      clearInterval(checkInterval);
-      disconnectWebSocket();
-    };
-  }, [fetchResults, selected]);
+    return () => disconnectWebSocket();
+  }, []);
 
   // -- Upload Handlers --
   const onDrop = useCallback((accepted) => {

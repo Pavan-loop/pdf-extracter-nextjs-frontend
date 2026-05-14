@@ -27,27 +27,22 @@ export default function UploadPage() {
 
   // Connect WebSocket on mount
   useEffect(() => {
-    clientRef.current = connectWebSocket((data) => {
-      setResults((prev) => {
-        const idx = prev.findIndex(r => r.jobId === data.jobId);
-        if (idx !== -1) {
-          const updated = [...prev];
-          updated[idx] = { ...updated[idx], ...data };
-          return updated;
-        }
-        return [data, ...prev];
-      });
-    });
+    clientRef.current = connectWebSocket(
+      (data) => {
+        setResults((prev) => {
+          const idx = prev.findIndex(r => r.jobId === data.jobId);
+          if (idx !== -1) {
+            const updated = [...prev];
+            updated[idx] = { ...updated[idx], ...data };
+            return updated;
+          }
+          return [data, ...prev];
+        });
+      },
+      (connected) => setWsConnected(connected),
+    );
 
-    // Watch connection
-    const checkInterval = setInterval(() => {
-      setWsConnected(clientRef.current?.active || false);
-    }, 1000);
-
-    return () => {
-      clearInterval(checkInterval);
-      disconnectWebSocket();
-    };
+    return () => disconnectWebSocket();
   }, []);
 
   const onDrop = useCallback((accepted) => {
