@@ -34,7 +34,11 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const res = await authApi.login(email, password);
     const token = res.data.data.token;
-    Cookies.set('token', token, { expires: 7 });
+    Cookies.set('token', token, {
+      expires: 7,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
     const payload = parseJwt(token);
     setUser({ email: payload.sub, roles: payload.roles || [] });
     return token;

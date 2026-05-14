@@ -133,7 +133,7 @@ function ResultsPageContent() {
   });
 
  const handleExportExcel = async () => {
-  if (!filteredPreviewRows.length) return alert('No line items to export!');
+  if (!filteredPreviewRows.length) return;
 
   const activeCols = availableColumns.filter(c => selectedExportCols.has(c));
   let savedGlobal = [];
@@ -285,7 +285,7 @@ function ResultsPageContent() {
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => setShowExportModal(true)} className={styles.settingsBtn}>⚙️ Columns</button>
-                  <button onClick={handleExportExcel} className={styles.exportBtn}>📥 Export to Excel</button>
+                  <button onClick={handleExportExcel} className={styles.exportBtn} disabled={!filteredPreviewRows.length}>📥 Export to Excel</button>
                 </div>
               </div>
               <div className={styles.dataSection}>

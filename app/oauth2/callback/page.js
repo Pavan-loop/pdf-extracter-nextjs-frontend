@@ -10,7 +10,11 @@ function OAuthCallbackContent() {
   useEffect(() => {
     const token = params.get('token');
     if (token) {
-      Cookies.set('token', token, { expires: 7 });
+      Cookies.set('token', token, {
+        expires: 7,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      });
       router.replace('/dashboard');
     } else {
       router.replace('/login?error=oauth');

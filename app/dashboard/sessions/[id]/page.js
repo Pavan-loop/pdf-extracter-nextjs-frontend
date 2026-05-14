@@ -204,7 +204,7 @@ export default function SessionWorkspacePage({ params }) {
   });
 
   const handleExportExcel = async () => {
-  if (!filteredPreviewRows.length) return alert('No line items to export!');
+  if (!filteredPreviewRows.length) return;
 
   const activeCols = availableColumns.filter(c => selectedExportCols.has(c));
   let savedGlobal = [];
@@ -399,7 +399,7 @@ export default function SessionWorkspacePage({ params }) {
                 </div>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button onClick={() => setShowExportModal(true)} className={styles.settingsBtn}>⚙️ Columns</button>
-                  <button onClick={handleExportExcel} className={styles.exportBtn}>📥 Export to Excel</button>
+                  <button onClick={handleExportExcel} className={styles.exportBtn} disabled={!filteredPreviewRows.length}>📥 Export to Excel</button>
                 </div>
               </div>
               <div className={styles.dataSection}>
@@ -426,7 +426,7 @@ export default function SessionWorkspacePage({ params }) {
                 {selected.status === 'DONE' && selected.extractedData && (
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => setShowExportModal(true)} className={styles.settingsBtn}>⚙️ Columns</button>
-                    <button onClick={handleExportExcel} className={styles.exportBtn}>📥 Export to Excel</button>
+                    <button onClick={handleExportExcel} className={styles.exportBtn} disabled={!filteredPreviewRows.length}>📥 Export to Excel</button>
                   </div>
                 )}
               </div>
