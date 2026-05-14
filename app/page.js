@@ -1,6 +1,7 @@
 'use client';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
+import ThemeToggle from '@/components/ThemeToggle';
 import styles from './landing.module.css';
 
 export default function LandingPage() {
@@ -20,6 +21,7 @@ export default function LandingPage() {
           <a href="#how-it-works" className={styles.navLink}>How It Works</a>
         </div>
         <div className={styles.navRight}>
+          <ThemeToggle className={styles.themeToggle} />
           {!loading && user ? (
             <Link href="/dashboard" className={styles.ctaBtn}>Enter Workspace</Link>
           ) : (

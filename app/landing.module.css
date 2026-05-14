@@ -23,10 +23,11 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 10, 10, 0.9);
+  background: color-mix(in srgb, var(--bg) 90%, transparent);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
+  transition: background 0.25s;
 }
 
 .logo {
@@ -80,6 +81,26 @@
   flex-shrink: 0;
 }
 
+.themeToggle {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.themeToggle:hover {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border-bright);
+}
+
 .loginBtn {
   font-size: 14px;
   font-weight: 400;
@@ -120,11 +141,11 @@
   overflow: hidden;
 }
 
-/* Subtle dot grid */
+/* Subtle dot grid — uses border color so it works in both themes */
 .heroGrid {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
   background-size: 28px 28px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 20%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, black 20%, transparent 100%);

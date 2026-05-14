@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 import styles from './Sidebar.module.css';
 
 const NAV = [
@@ -49,6 +50,7 @@ export default function Sidebar() {
             <span className={styles.userRole}>USER</span>
           </div>
         </div>
+        <ThemeToggle className={styles.themeToggle} />
         <button className={styles.logoutBtn} onClick={logout} title="Sign out">
           ⏻
         </button>

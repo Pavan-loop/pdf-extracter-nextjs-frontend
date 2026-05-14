@@ -28,6 +28,30 @@
   --radius-lg: 8px;
 }
 
+/* ── Light mode ───────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg: #f9f9f7;
+  --surface: #f2f2ef;
+  --surface-2: #eaeae6;
+  --surface-3: #e2e2de;
+  --border: #d4d4cf;
+  --border-bright: #c0c0ba;
+  --text: #1a1a18;
+  --text-muted: #52524d;
+  --text-dim: #8f8f8a;
+  /* Dark olive — same hue family as #e8ff47 but contrast-safe on light bg */
+  --accent: #5a7600;
+  --accent-dim: rgba(90, 118, 0, 0.1);
+  --accent-hover: #4a6200;
+  --red: #cc2200;
+  --red-dim: rgba(204, 34, 0, 0.1);
+  --green: #0f7a35;
+  --green-dim: rgba(15, 122, 53, 0.1);
+  --blue: #1a55d4;
+  --blue-dim: rgba(26, 85, 212, 0.1);
+  --orange: #c45200;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { font-size: 16px; -webkit-font-smoothing: antialiased; }

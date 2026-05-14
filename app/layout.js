@@ -21,6 +21,15 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        {/* Read theme from localStorage before first paint — prevents flash */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          try {
+            var t = localStorage.getItem('theme');
+            if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+          } catch(e) {}
+        `}} />
+      </head>
       <body>
         <AuthProvider>{children}</AuthProvider>
       </body>
