@@ -2,6 +2,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { pdfApi } from '@/lib/api';
+import QuotaModal from '@/components/QuotaModal';
 import { format } from 'date-fns';
 import styles from './results.module.css';
 
@@ -24,6 +25,22 @@ function ResultsPageContent() {
   const [filter, setFilter] = useState('ALL');
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!confirm('Delete this PDF result?')) return;
+    setDeletingId(id);
+    try {
+      await pdfApi.deleteResult(id);
+      setResults(prev => prev.filter(r => r.id !== id));
+      if (selected?.id === id) setSelected(null);
+    } catch {
+      // silently ignore — item may already be gone
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     pdfApi.getMyResults()
@@ -228,15 +245,23 @@ function ResultsPageContent() {
                   }}
                 >
                   <div className={styles.listTop}>
-                    <input 
-                      type="checkbox" 
-                      onClick={(e) => e.stopPropagation()} 
-                      onChange={(e) => toggleSelection(e, r.id)} 
+                    <input
+                      type="checkbox"
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => toggleSelection(e, r.id)}
                       checked={selectedIds.has(r.id)}
                       style={{ marginRight: '10px', width: '16px', height: '16px', cursor: 'pointer' }}
                     />
                     <span className={styles.listFile}>{r.filename || 'Unnamed'}</span>
                     <StatusBadge status={r.status} />
+                    <button
+                      className={styles.deleteBtn}
+                      onClick={(e) => handleDelete(e, r.id)}
+                      disabled={deletingId === r.id}
+                      title="Delete"
+                    >
+                      {deletingId === r.id ? '…' : '✕'}
+                    </button>
                   </div>
                   <div className={styles.listMeta}>
                     <span className={styles.listType}>{r.documentType || 'UNKNOWN'}</span>

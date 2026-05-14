@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { pdfApi, sessionApi } from '@/lib/api';
+import QuotaModal from '@/components/QuotaModal';
 import { connectWebSocket, disconnectWebSocket } from '@/lib/websocket';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -36,6 +37,7 @@ export default function SessionWorkspacePage({ params }) {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState(null);
+  const [quotaMsg, setQuotaMsg] = useState(null);
   const [wsConnected, setWsConnected] = useState(false);
   const clientRef = useRef(null);
 
@@ -126,7 +128,11 @@ export default function SessionWorkspacePage({ params }) {
         setSelectedIds(new Set()); // exit merge mode
       }
     } catch (err) {
-      setUploadMsg({ type: 'error', text: err.response?.data?.message || 'Upload failed' });
+      if (err.response?.status === 429) {
+        setQuotaMsg(err.response.data.message);
+      } else {
+        setUploadMsg({ type: 'error', text: err.response?.data?.message || 'Upload failed' });
+      }
     } finally {
       setUploading(false);
     }
@@ -256,6 +262,7 @@ export default function SessionWorkspacePage({ params }) {
 
   return (
     <div className={styles.page}>
+      {quotaMsg && <QuotaModal message={quotaMsg} onClose={() => setQuotaMsg(null)} />}
       {renderExportModal()}
       <div className={styles.header}>
         <div>

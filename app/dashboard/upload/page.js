@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { pdfApi } from '@/lib/api';
 import { connectWebSocket, disconnectWebSocket } from '@/lib/websocket';
+import QuotaModal from '@/components/QuotaModal';
 import { format } from 'date-fns';
 import { DataViewer } from '@/components/DataViewer';
 import styles from './upload.module.css';
@@ -19,6 +20,7 @@ export default function UploadPage() {
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState(null);
+  const [quotaMsg, setQuotaMsg] = useState(null);
   const [results, setResults] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const clientRef = useRef(null);
@@ -82,7 +84,11 @@ export default function UploadPage() {
       ]);
       setFiles([]);
     } catch (err) {
-      setUploadMsg({ type: 'error', text: err.response?.data?.message || 'Upload failed' });
+      if (err.response?.status === 429) {
+        setQuotaMsg(err.response.data.message);
+      } else {
+        setUploadMsg({ type: 'error', text: err.response?.data?.message || 'Upload failed' });
+      }
     } finally {
       setUploading(false);
     }
@@ -90,6 +96,7 @@ export default function UploadPage() {
 
   return (
     <div className={styles.page}>
+      {quotaMsg && <QuotaModal message={quotaMsg} onClose={() => setQuotaMsg(null)} />}
       {/* ── Header ── */}
       <div className={styles.header}>
         <div>

@@ -21,8 +21,8 @@ function SessionCard({ session, index }) {
           <span className={styles.cardName}>{session.sessionName}</span>
           <span className={styles.cardType}>{session.documentType}</span>
         </div>
-        {session.Description && (
-          <p className={styles.cardDesc}>{session.Description}</p>
+        {session.description && (
+          <p className={styles.cardDesc}>{session.description}</p>
         )}
         <div className={styles.cardFooter}>
           <span className={styles.cardId}>Session #{session.id || '—'}</span>
@@ -37,7 +37,7 @@ export default function SessionsPage() {
   const [sessions, setSessions] = useState([]);
   const [fetchingSessions, setFetchingSessions] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ sessionName: '', documentType: 'PURCHASE_ORDER', Description: '', color: '#e8ff47' });
+  const [form, setForm] = useState({ sessionName: '', documentType: 'PURCHASE_ORDER', description: '', color: '#e8ff47' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -60,7 +60,7 @@ export default function SessionsPage() {
       const newSession = { ...form, id: res.data.data?.id || res.data.data };
       setSessions(prev => [newSession, ...prev]);
       setSuccess(`Session "${form.sessionName}" created!`);
-      setForm({ sessionName: '', documentType: 'PURCHASE_ORDER', Description: '', color: '#e8ff47' });
+      setForm({ sessionName: '', documentType: 'PURCHASE_ORDER', description: '', color: '#e8ff47' });
       setTimeout(() => setShowModal(false), 1200);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create session');
@@ -141,7 +141,7 @@ export default function SessionsPage() {
                 <label className={styles.label}>DESCRIPTION (optional)</label>
                 <textarea
                   className={styles.textarea} placeholder="What is this session for?"
-                  value={form.Description} onChange={set('Description')} rows={3}
+                  value={form.description} onChange={set('description')} rows={3}
                 />
               </div>
 

@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { dashboardApi, pdfApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import styles from './page.module.css';
 
 function StatCard({ label, value, sub, accent, loading }) {
@@ -79,6 +79,51 @@ export default function DashboardPage() {
         <StatCard label="COMPLETED" value={cards?.completed} sub="Successful extractions" loading={cardsLoading} accent />
         <StatCard label="SUCCESS RATE" value={`${completionRate}%`} sub="Extraction accuracy" loading={cardsLoading} />
       </div>
+
+      {/* ── Plan / Quota ── */}
+      {!cardsLoading && cards && (
+        <div className={styles.planCard}>
+          {cards.plan === 'FREE' && (
+            <>
+              <div className={styles.planRow}>
+                <span className={styles.planLabel}>YOUR PLAN</span>
+                <span className={styles.planName}>FREE</span>
+                <a href="/pricing" className={styles.upgradeBtn}>Upgrade Plan →</a>
+              </div>
+              <div className={styles.quotaBarWrap}>
+                <div className={styles.quotaBar}>
+                  <div
+                    className={styles.quotaFill}
+                    style={{ width: `${Math.min((cards.pagesUploadedThisMonth / cards.monthlyPageLimit) * 100, 100)}%` }}
+                  />
+                </div>
+                <span className={styles.quotaText}>
+                  {cards.pagesUploadedThisMonth} / {cards.monthlyPageLimit} pages used
+                  <span className={styles.quotaRemaining}> · {cards.pagesRemaining} remaining</span>
+                </span>
+              </div>
+            </>
+          )}
+          {cards.plan === 'SUBSCRIBER' && (
+            <div className={styles.planRow}>
+              <span className={styles.planLabel}>YOUR PLAN</span>
+              <span className={`${styles.planName} ${styles.planSubscriber}`}>✨ Subscriber</span>
+              {cards.subscriptionExpiresAt && (
+                <span className={styles.planExpiry}>
+                  Renews {format(parseISO(cards.subscriptionExpiresAt), 'MMM d, yyyy')}
+                </span>
+              )}
+            </div>
+          )}
+          {cards.plan === 'DEV' && (
+            <div className={styles.planRow}>
+              <span className={styles.planLabel}>YOUR PLAN</span>
+              <span className={`${styles.planName} ${styles.planDev}`}>🛠 Developer</span>
+              <span className={styles.planExpiry}>Unlimited access</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Progress bar ── */}
       {!cardsLoading && cards && (
