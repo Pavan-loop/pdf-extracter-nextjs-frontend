@@ -40,7 +40,7 @@ function LoginForm() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8081/oauth2/authorization/google';
+    window.location.href = process.env.NEXT_PUBLIC_GOOGLE_AUTH_URL;
   };
 
   return (
@@ -131,8 +131,13 @@ function LoginForm() {
               />
             </div>
 
-            <button type="submit" className={styles.btnPrimary} disabled={loading}>
-              {loading ? <span className={styles.spinner} /> : 'SIGN IN'}
+            <button type="submit" className={`${styles.btnPrimary} ${loading ? styles.btnLoading : ''}`} disabled={loading}>
+              {loading ? (
+                <>
+                  <span className={styles.spinner} />
+                  SIGNING IN...
+                </>
+              ) : 'SIGN IN'}
             </button>
           </form>
 
